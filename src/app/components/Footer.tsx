@@ -22,16 +22,6 @@ export function Footer() {
             </div>
           </div>
 
-          {/* Links */}
-          <div>
-            <h4 className="font-semibold mb-4">Enlaces rápidos</h4>
-            <ul className="space-y-2 text-sm text-gray-400">
-              <li><a href="#" className="hover:text-white transition-colors">Inicio</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Formatos soportados</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Modo de uso</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Registro de procesos</a></li>
-            </ul>
-          </div>
         </div>
 
         <div className="border-t border-gray-800 pt-8">

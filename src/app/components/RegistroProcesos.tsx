@@ -1,4 +1,4 @@
-import { Eye, FileJson, FileText, Table, Clock, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
+import { FileJson, FileText, Table, Clock, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { supabase } from '../supabase/supabaseClient';
 
@@ -22,7 +22,9 @@ export function RegistroProcesos() {
       if (error) {
         console.error('Error al cargar procesos:', error.message);
       } else if (data) {
-        setProcesos(data);
+        // Obtenemos solo los últimos 4 registros y los invertimos para ver los más recientes arriba
+        const ultimosCuatro = data.slice(-4).reverse();
+        setProcesos(ultimosCuatro);
       }
     } catch (err) {
       console.error('Error inesperado de red:', err);
@@ -46,35 +48,6 @@ export function RegistroProcesos() {
     return <Clock className="w-4 h-4 text-amber-500" />;
   };
 
-  const formatearFecha = (fechaString: string) => {
-    if (!fechaString) return 'Desconocida';
-    const date = new Date(fechaString);
-    // Formato de fecha legible (ej. 20/5/2026, 18:30)
-    return date.toLocaleString('es-ES', { 
-      day: '2-digit', 
-      month: '2-digit', 
-      year: 'numeric', 
-      hour: '2-digit', 
-      minute: '2-digit' 
-    });
-  };
-
-  const abrirVistaPrevia = async (nombreArchivo: string) => {
-    if (!nombreArchivo) return;
-    try {
-      // Obtenemos la URL pública del archivo desde el bucket 'Documentos'
-      const { data } = supabase.storage
-        .from('Documentos')
-        .getPublicUrl(nombreArchivo); // En FileUploader se guardaba con un prefijo de Date.now(), idealmente habría que guardar ese nombre exacto en DB, aquí buscamos por el que haya.
-        
-      if (data?.publicUrl) {
-        window.open(data.publicUrl, '_blank');
-      }
-    } catch (error) {
-      console.error("No se pudo abrir la vista previa", error);
-    }
-  };
-
   return (
     <section id="registro" className="py-20 px-6 bg-white">
       <div className="max-w-7xl mx-auto">
@@ -83,7 +56,7 @@ export function RegistroProcesos() {
             <h2 className="text-3xl font-bold text-[#1F2937] mb-2">Registro de Procesos</h2>
             <p className="text-gray-600">Historial de archivos cargados y procesados en el sistema.</p>
           </div>
-          <button 
+          <button
             onClick={fetchProcesos}
             disabled={loading}
             className="mt-4 md:mt-0 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors text-sm font-medium disabled:opacity-50"
@@ -100,21 +73,19 @@ export function RegistroProcesos() {
                   <th className="p-5">Archivo</th>
                   <th className="p-5">Usuario</th>
                   <th className="p-5">Observación</th>
-                  <th className="p-5">Fecha</th>
-                  <th className="p-5 text-center">Vista Previa</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {loading ? (
                   <tr>
-                    <td colSpan={5} className="p-10 text-center">
+                    <td colSpan={3} className="p-10 text-center">
                       <Loader2 className="w-8 h-8 text-[#E53935] animate-spin mx-auto mb-4" />
                       <p className="text-gray-500">Cargando procesos desde Supabase...</p>
                     </td>
                   </tr>
                 ) : procesos.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="p-10 text-center">
+                    <td colSpan={3} className="p-10 text-center">
                       <div className="flex flex-col items-center justify-center py-6">
                         <FileText className="w-12 h-12 text-gray-300 mb-4" />
                         <p className="text-gray-500 font-medium">No hay archivos registrados todavía.</p>
@@ -152,29 +123,13 @@ export function RegistroProcesos() {
                           {proceso.observaciones || 'Sin observaciones'}
                         </p>
                       </td>
-                      <td className="p-5">
-                        <span className="text-sm font-medium text-gray-500 bg-gray-100 px-2.5 py-1 rounded-md">
-                          {formatearFecha(proceso.created_at)}
-                        </span>
-                      </td>
-                      <td className="p-5">
-                        <div className="flex items-center justify-center">
-                          <button 
-                            onClick={() => abrirVistaPrevia(proceso.nombre_archivo)}
-                            className="p-2 text-gray-400 hover:text-[#E53935] hover:bg-red-50 rounded-lg transition-all hover:scale-105 active:scale-95"
-                            title="Ver archivo"
-                          >
-                            <Eye className="w-5 h-5" />
-                          </button>
-                        </div>
-                      </td>
                     </tr>
                   ))
                 )}
               </tbody>
             </table>
           </div>
-          
+
           {!loading && procesos.length > 0 && (
             <div className="p-4 border-t border-gray-100 bg-gray-50/50 flex items-center justify-between text-sm text-gray-500">
               <span>Mostrando {procesos.length} procesos registrados</span>
