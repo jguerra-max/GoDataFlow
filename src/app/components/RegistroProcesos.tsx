@@ -17,8 +17,7 @@ export function RegistroProcesos() {
       // Consultamos la tabla archivos_metadata que ya se utiliza en FileUploader
       const { data, error } = await supabase
         .from('archivos_metadata')
-        .select('*')
-        .order('created_at', { ascending: false });
+        .select('*');
 
       if (error) {
         console.error('Error al cargar procesos:', error.message);
